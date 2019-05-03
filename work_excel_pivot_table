@@ -1,0 +1,22 @@
+import pandas as pd
+import numpy as np
+
+
+df = pd.read_excel("selected_data.xlsx")
+#filter_col = list(set(df["Sheet_Name"]))
+filter_col= ["25.03.2018","1.04.2018", "8.04.2018","15.04.2018", "22.04.2018","29.04.2018", "6.05.2018","13.05.2018","20.05.2018","27.05.2018","3.06.2018","10.06.2018","17.06.2018","24.06.2018"]
+write_excel = pd.ExcelWriter("result.xlsx")
+
+start_row = 1
+
+for week in filter_col:
+    filtered_df = df[df.Sheet_Name == week]
+    pivot_df = pd.pivot_table(filtered_df,values=["Hours"],index=["Staff_Name"], columns=["Project_Name"],aggfunc="sum", margins=True)
+    pivot_df.fillna('', inplace=True)
+    pivot_df.to_excel(write_excel, sheet_name="result", startrow= start_row, startcol= 1)
+    worksheet = write_excel.sheets["result"]
+    worksheet.cell(row=start_row, column=2).value = week
+    start_row += 18
+
+write_excel.save()
+write_excel.close()
