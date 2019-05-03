@@ -1,0 +1,26 @@
+import datetime
+import xlrd
+
+def load():
+    loc = ('full.xlsx')
+    wb = xlrd.open_workbook(loc)
+    sheet_names = wb.sheet_names()
+
+    for sheet_name in sheet_names:
+        get_data_by_sheet_name(wb, sheet_name)
+
+def get_data_by_sheet_name(wb, sheet_name):
+    sheet = wb.sheet_by_name(sheet_name)
+    name = ''
+    for col in range(2, sheet.ncols):
+        if sheet.cell(0, col).value != '':
+            name = sheet.cell(0, col).value
+        for row in range(2, sheet.nrows - 2):
+            if sheet.cell(row, col).value != '':
+                date = datetime.datetime(*xlrd.xldate_as_tuple(sheet.cell_value(1, col), wb.datemode))
+                #print(sheet_name + '-' + str(row) + '-'  + str(col), name, ',', str(date.year) + '' + str(date.month) + '' + str(date.day),',', sheet.cell(row, 0),',', sheet.cell(row, col).value)
+                print(sheet_name, ',', str(row) + '-' + str(col), ',', name, ',',
+                      date, ',', sheet.cell(row, 0), ',',
+                      sheet.cell(row, col).value)
+if __name__ == '__main__':
+    load()
