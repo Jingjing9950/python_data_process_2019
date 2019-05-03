@@ -1,0 +1,50 @@
+import pandas as pd
+
+# To insert new key and process excel table into dictionary due to no uniq key for matching
+def insert_new_key(file_name):
+    tem_dic = {}
+    df = pd.read_excel(file_name, skiprows=[0])
+    new_df = df[["Voucher No.", "Year", "Customer No.", "Section", "name", "TTL"]]
+    new_df.dropna(subset=["Voucher No."],inplace=True)
+    new_df["new_key"] = new_df["Voucher No."].map(str) + "|" + new_df["Year"].map(str) + "|" + new_df["name"]
+    for x in range(len(new_df["new_key"])):
+        new_key_value = new_df["new_key"][x]
+        if new_key_value not in tem_dic:
+            tem_dic[new_key_value] = [new_df["TTL"][x]]
+        else:
+            tem_dic[new_key_value].append(new_df["TTL"][x])
+
+    return tem_dic
+
+def match_and_place_value():
+    dic06 = insert_new_key(file1)
+    dic07 = insert_new_key(file2)
+    all_keys = set(list(dic06.keys()) + list(dic07.keys()))
+
+    result_dic = {'key':[],'value06':[], 'value07':[]}
+    for key in all_keys:
+        key_list06 = dic06.get(key, [])
+        key_list07 = dic07.get(key, [])
+        max_len = max(len(key_list06), len(key_list07))
+
+        for i in range(max_len):
+            value06 = 0
+            if i < len(key_list06):
+                value06 = key_list06[i]
+
+            value07 = 0
+            if i < len(key_list07):
+                value07 = key_list07[i]
+
+            result_dic['key'].append(key)
+            result_dic['value06'].append(value06)
+            result_dic['value07'].append(value07)
+
+    result = pd.DataFrame(result_dic)
+    result.to_excel("test_result.xlsx", index=False)
+
+
+# call function
+file1 = "Advance List_201806.xlsx"
+file2 = "Advance List_201807.xls"
+match_and_place_value()
