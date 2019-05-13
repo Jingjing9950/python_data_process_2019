@@ -1,0 +1,28 @@
+import pandas as pd
+import xlrd
+
+projects = pd.read_excel("Sony_all_project.xlsx")
+project_list = projects["project"].tolist()
+
+# df = pd.read_excel("A035900_FY18.xlsx")
+# print(df.head())
+
+loc = ('A035900_FY18.xlsx')
+wb = xlrd.open_workbook(loc)
+sheet_data = wb.sheet_by_name("Sheet1")
+
+count = 0
+project_name = ''
+for row in range(0, sheet_data.nrows):
+    show = False
+    for project in project_list:
+        sheet_value = sheet_data.cell(row, 21).value.lower()
+        if sheet_value.find(project.lower()) != -1:
+            project_name = project
+            show = True
+            break
+    if show:
+        for col in range(sheet_data.ncols):
+            print(sheet_data.cell(row, col).value, end="|")
+        print(project_name, end="")
+        print()
