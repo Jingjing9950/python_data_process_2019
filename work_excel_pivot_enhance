@@ -1,0 +1,43 @@
+import pandas as pd
+import numpy as np
+
+
+df = pd.read_excel("selected_data.xlsx")
+#filter_col = list(set(df["Sheet_Name"]))
+filter_col= ["25.03.2018","1.04.2018", "8.04.2018","15.04.2018", "22.04.2018","29.04.2018", "6.05.2018","13.05.2018","20.05.2018","27.05.2018","3.06.2018","10.06.2018","17.06.2018","24.06.2018"]
+write_excel = pd.ExcelWriter("result.xlsx")
+
+#use pivot table to summarize original data set
+start_row = 1
+fix_col = 12
+for week in filter_col:
+    filtered_df = df[df.Sheet_Name == week]
+    pivot_df = pd.pivot_table(filtered_df,values=["Hours"],index=["Staff_Name"], columns=["Project_Name"],aggfunc="sum", margins=True)
+    pivot_df.fillna('', inplace=True)
+
+#process the summarized data by creating another new dataframe
+    summary_table = pd.DataFrame()
+    summary_table["Original_hrs"] = pivot_df["Hours"]["All"]
+    summary_table.drop(summary_table.index[-1], inplace=True)
+
+    summary_table["Normal_hrs"] = np.where(summary_table["Original_hrs"] <= 48,summary_table["Original_hrs"], 48)
+    summary_table["Normal_amount@$56"] = summary_table["Normal_hrs"]*56
+    summary_table["OT_hrs"] = summary_table["Original_hrs"] - summary_table["Normal_hrs"]
+    summary_table["OT_amount@$84"] = summary_table["OT_hrs"] * 84
+    summary_table["OT_amount@$75"] = summary_table["OT_hrs"] * 75
+    summary_table.loc['Total'] = summary_table.sum(numeric_only=True)
+
+#Delete uncessary columns
+    columns = ["Original_hrs"]
+    summary_table.drop(columns, inplace=True, axis=1)
+
+#write all processed data into excel file
+    pivot_df.to_excel(write_excel, sheet_name="result", startrow= start_row, startcol= 1)
+    summary_table.to_excel(write_excel, sheet_name="result", startrow = start_row + 2, startcol= fix_col, index= False )
+    worksheet = write_excel.sheets["result"]
+
+    worksheet.cell(row=start_row, column=2).value = week
+    start_row += 18
+
+write_excel.save()
+write_excel.close()
